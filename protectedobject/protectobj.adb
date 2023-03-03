@@ -3,10 +3,11 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Containers; use Ada.Containers;
 with Ada.Containers.Vectors;
 
-
+-- 0 1 2 5 0 4 6 3 7 8 2 6 1 7 2 3 4 5
+-- 0 1 2 1 0 5 4 3 6 2 7 8 7 1 0 6 2 3 4 5
 procedure protectobj is
 
-    tick : Float := 0.033;
+    tick : Float := 0.016;
     package IntVec is new Ada.Containers.Vectors
         (Index_Type  => Natural,
         Element_Type => Integer);
@@ -30,16 +31,20 @@ procedure protectobj is
     end Resource;
     protected body Resource is
     
-        entry allocateLow(val: out IntVec.Vector) when True is
+        entry allocateLow(val: out IntVec.Vector) when allocateHigh'Count = 0 and not busy is
         begin
+            busy := true;
             --Put_Line("allocateLow");
             val := value;
+            busy := false;
         end allocateLow;
     
-        entry allocateHigh(val: out IntVec.Vector) when True is
+        entry allocateHigh(val: out IntVec.Vector) when not busy is
         begin
+            busy := true;
             --Put_Line("allocateHigh");
             val := value;
+            busy := false;
         end allocateHigh;
 
         procedure deallocate(val: IntVec.Vector) is
